@@ -353,22 +353,23 @@ canvas {
     transform: rotate(90deg);
 }
 
-#sistemaContainer.menu-fechado #menuLateral {
+/* ALTERADO: Agora usa a classe no body para controlar o menu */
+body.menu-fechado #menuLateral {
     width: 60px;
     padding: 20px 0;
 }
 
-#sistemaContainer.menu-fechado #menuLateral .menu-header {
+body.menu-fechado #menuLateral .menu-header {
     justify-content: center;
 }
 
-#sistemaContainer.menu-fechado #menuLateral .menu-header h2,
-#sistemaContainer.menu-fechado #menuLateral ul,
-#sistemaContainer.menu-fechado #menuLateral .menu-footer {
+body.menu-fechado #menuLateral .menu-header h2,
+body.menu-fechado #menuLateral ul,
+body.menu-fechado #menuLateral .menu-footer {
     display: none;
 }
 
-#sistemaContainer.menu-fechado #toggleMenuBtn {
+body.menu-fechado #toggleMenuBtn {
     padding: 0;
 }
 
@@ -522,4 +523,32 @@ input:checked + .slider:before {
     #menuLateral ul li a { font-size: 12px; padding: 8px 10px; }
     #menuLateral .menu-footer { margin: 0; width: 100%; text-align: center; }
     #botaoLogout { width: auto; padding: 8px 15px; }
+}
+
+/* --- ESTILOS DO FOOTER --- */
+#page-footer {
+    position: fixed;
+    bottom: 10px;
+    font-size: 12px;
+    color: #888;
+    text-align: right;
+    z-index: 100;
+    line-height: 1.5;
+    right: 15px;
+    left: auto;
+    transition: left 0.3s ease, right 0.3s ease;
+}
+
+body.loggedin #page-footer {
+    left: 270px;
+    right: 20px;
+    text-align: right;
+}
+
+body.loggedin.menu-fechado #page-footer {
+    left: 80px;
+}
+
+body.dark-mode #page-footer {
+    color: rgba(255, 255, 255, 0.4);
 }

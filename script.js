@@ -159,7 +159,6 @@ function ajustarTamanhoCanvas() {
     }
 }
 
-// ALTERADO: Lógica de login reestruturada para tratar erro de senha do ADM
 formLogin.addEventListener('submit', function(evento) {
     evento.preventDefault();
     const nome = inputNome.value.trim();
@@ -167,20 +166,16 @@ formLogin.addEventListener('submit', function(evento) {
     const senha = inputSenha.value;
     const celular = inputCelular.value.trim();
 
-    // 1. Verifica se é uma tentativa de login de ADM
     if (email === ADMIN_EMAIL) {
         if (senha === ADMIN_SENHA) {
-            // Sucesso no login de ADM
             jogadorAtual = { nome: 'Administrador', email: ADMIN_EMAIL, role: 'admin' };
             menuItemUsuarios.classList.remove('escondido');
             iniciarSessao();
             mostrarSecao('usuarios');
         } else {
-            // Falha no login de ADM
             alert('Senha de administrador incorreta.');
         }
     }
-    // 2. Se não for, trata como login de jogador
     else {
         if (nome === '' || email === '' || celular === '') {
             alert('Para jogar, seu Nome, E-mail e Celular são obrigatórios!');
@@ -196,6 +191,10 @@ formLogin.addEventListener('submit', function(evento) {
 function iniciarSessao() {
     telaLogin.classList.add('escondido');
     sistemaContainer.classList.remove('escondido');
+    
+    // NOVO: Adiciona uma classe ao body para indicar que o usuário está logado
+    document.body.classList.add('loggedin');
+
     ajustarTamanhoCanvas();
     window.addEventListener('resize', ajustarTamanhoCanvas);
     gameLoop(); 
@@ -241,12 +240,11 @@ function mostrarSecao(id) {
     }
 }
 
-// ALTERADO: Função agora verifica por 'celular' e pelo 'telefone' antigo para compatibilidade
 function popularTabelaUsuarios() {
     const usuarios = getUsuarios();
     corpoTabelaUsuarios.innerHTML = '';
     usuarios.sort((a, b) => b.pontuacaoMaxima - a.pontuacaoMaxima).forEach(usuario => {
-        const celularUsuario = usuario.celular || usuario.telefone || 'Não informado'; // Garante que algo seja exibido
+        const celularUsuario = usuario.celular || usuario.telefone || 'Não informado';
         corpoTabelaUsuarios.innerHTML += `<tr><td>${usuario.nome}</td><td>${usuario.email}</td><td>${celularUsuario}</td><td>${usuario.dataCadastro}</td><td>${usuario.pontuacaoMaxima}</td></tr>`;
     });
 }
@@ -268,11 +266,14 @@ function atualizarIndicadores() {
     document.getElementById('nivelMedio').textContent = nivelMedio;
 }
 
-if (toggleMenuBtn) { toggleMenuBtn.addEventListener('click', () => {
-    sistemaContainer.classList.toggle('menu-fechado');
-    toggleMenuBtn.classList.toggle('ativo');
-    setTimeout(ajustarTamanhoCanvas, 300); 
-});}
+// ALTERADO: Agora a classe 'menu-fechado' é aplicada no BODY
+if (toggleMenuBtn) { 
+    toggleMenuBtn.addEventListener('click', () => {
+        document.body.classList.toggle('menu-fechado');
+        toggleMenuBtn.classList.toggle('ativo');
+        setTimeout(ajustarTamanhoCanvas, 300); 
+    });
+}
 
 if (filtroUsuariosInput) { filtroUsuariosInput.addEventListener('keyup', () => {
     const termoBusca = filtroUsuariosInput.value.toLowerCase();
