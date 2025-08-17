@@ -7,10 +7,12 @@ const telaLogin = document.getElementById('telaLogin');
 const formLogin = document.getElementById('formLogin');
 const inputNome = document.getElementById('nome');
 const inputEmail = document.getElementById('email');
-const inputTelefone = document.getElementById('telefone');
+const inputSenha = document.getElementById('senha');
+const inputCelular = document.getElementById('celular');
 const sistemaContainer = document.getElementById('sistemaContainer');
 const botaoLogout = document.getElementById('botaoLogout');
 const menuLinks = document.querySelectorAll('#menuLateral a');
+const menuItemUsuarios = document.getElementById('menu-item-usuarios');
 const secoesConteudo = document.querySelectorAll('.secao-conteudo');
 const filtroUsuariosInput = document.getElementById('filtroUsuarios');
 const corpoTabelaUsuarios = document.getElementById('corpoTabelaUsuarios');
@@ -29,9 +31,13 @@ const fimDeJogoMensagem = document.getElementById('fimDeJogoMensagem');
 const botaoReiniciar = document.getElementById('botaoReiniciar');
 const botaoPausar = document.getElementById('botaoPausar');
 
+// Credenciais do Administrador
+const ADMIN_EMAIL = 'admin@senac.com';
+const ADMIN_SENHA = 'admin123';
+
 // Variáveis de Estado do Jogo
 let pontuacao = 0;
-let estadoDoJogo = 'login'; // 'login', 'inativo', 'preparado', 'jogando', 'pausado', 'nivelConcluido', 'vitoria', 'gameOver'
+let estadoDoJogo = 'login';
 let nivelAtual = 0;
 let jogadorAtual = null; 
 let cronometro; 
@@ -58,7 +64,7 @@ const niveis = [
 function getUsuarios() { return JSON.parse(localStorage.getItem('usuariosJogo')) || []; }
 function salvarUsuarios(usuarios) { localStorage.setItem('usuariosJogo', JSON.stringify(usuarios)); }
 
-function cadastrarOuLogarUsuario(nome, email, telefone) {
+function cadastrarOuLogarUsuario(nome, email, celular) {
     let usuarios = getUsuarios();
     let usuarioExistente = usuarios.find(u => u.email === email);
 
@@ -66,28 +72,15 @@ function cadastrarOuLogarUsuario(nome, email, telefone) {
         jogadorAtual = usuarioExistente;
     } else {
         jogadorAtual = {
-            id: Date.now(), nome, email, telefone,
+            id: Date.now(), nome, email, celular,
             dataCadastro: new Date().toLocaleDateString('pt-BR'),
-            pontuacaoMaxima: 0, nivelMaximo: 1
+            pontuacaoMaxima: 0, nivelMaximo: 1,
+            role: 'player'
         };
         usuarios.push(jogadorAtual);
         salvarUsuarios(usuarios);
     }
-}
-
-function atualizarPontuacaoJogador() {
-    if (!jogadorAtual) return;
-    let usuarios = getUsuarios();
-    let usuarioIndex = usuarios.findIndex(u => u.id === jogadorAtual.id);
-
-    if (usuarioIndex !== -1) {
-        if (pontuacao > usuarios[usuarioIndex].pontuacaoMaxima) {
-            usuarios[usuarioIndex].pontuacaoMaxima = pontuacao;
-            jogadorAtual.pontuacaoMaxima = pontuacao;
-        }
-        usuarios[usuarioIndex].nivelMaximo = Math.max(usuarios[usuarioIndex].nivelMaximo, nivelAtual + 1);
-        salvarUsuarios(usuarios);
-    }
+    if (!jogadorAtual.role) jogadorAtual.role = 'player';
 }
 
 // ===============================================
@@ -166,19 +159,47 @@ function ajustarTamanhoCanvas() {
     }
 }
 
+// ALTERADO: Lógica de login reestruturada para tratar erro de senha do ADM
 formLogin.addEventListener('submit', function(evento) {
     evento.preventDefault();
-    cadastrarOuLogarUsuario(inputNome.value.trim(), inputEmail.value.trim(), inputTelefone.value);
+    const nome = inputNome.value.trim();
+    const email = inputEmail.value.trim();
+    const senha = inputSenha.value;
+    const celular = inputCelular.value.trim();
 
+    // 1. Verifica se é uma tentativa de login de ADM
+    if (email === ADMIN_EMAIL) {
+        if (senha === ADMIN_SENHA) {
+            // Sucesso no login de ADM
+            jogadorAtual = { nome: 'Administrador', email: ADMIN_EMAIL, role: 'admin' };
+            menuItemUsuarios.classList.remove('escondido');
+            iniciarSessao();
+            mostrarSecao('usuarios');
+        } else {
+            // Falha no login de ADM
+            alert('Senha de administrador incorreta.');
+        }
+    }
+    // 2. Se não for, trata como login de jogador
+    else {
+        if (nome === '' || email === '' || celular === '') {
+            alert('Para jogar, seu Nome, E-mail e Celular são obrigatórios!');
+            return;
+        }
+        cadastrarOuLogarUsuario(nome, email, celular);
+        menuItemUsuarios.classList.add('escondido');
+        iniciarSessao();
+        mostrarSecao('jogar');
+    }
+});
+
+function iniciarSessao() {
     telaLogin.classList.add('escondido');
     sistemaContainer.classList.remove('escondido');
-    
     ajustarTamanhoCanvas();
     window.addEventListener('resize', ajustarTamanhoCanvas);
-
-    mostrarSecao('jogar');
     gameLoop(); 
-});
+}
 
 botaoLogout.addEventListener('click', () => location.reload());
 botaoReiniciar.addEventListener('click', () => {
@@ -196,9 +217,13 @@ menuLinks.forEach(link => {
 });
 
 function mostrarSecao(id) {
+    if (id === 'usuarios' && jogadorAtual.role !== 'admin') {
+        alert('Acesso negado.');
+        return;
+    }
+
     secoesConteudo.forEach(secao => secao.classList.add('escondido'));
     menuLinks.forEach(link => link.classList.remove('active'));
-
     document.getElementById(id)?.classList.remove('escondido');
     document.querySelector(`a[data-target="${id}"]`)?.classList.add('active');
 
@@ -216,11 +241,13 @@ function mostrarSecao(id) {
     }
 }
 
+// ALTERADO: Função agora verifica por 'celular' e pelo 'telefone' antigo para compatibilidade
 function popularTabelaUsuarios() {
     const usuarios = getUsuarios();
     corpoTabelaUsuarios.innerHTML = '';
     usuarios.sort((a, b) => b.pontuacaoMaxima - a.pontuacaoMaxima).forEach(usuario => {
-        corpoTabelaUsuarios.innerHTML += `<tr><td>${usuario.nome}</td><td>${usuario.email}</td><td>${usuario.telefone}</td><td>${usuario.dataCadastro}</td><td>${usuario.pontuacaoMaxima}</td></tr>`;
+        const celularUsuario = usuario.celular || usuario.telefone || 'Não informado'; // Garante que algo seja exibido
+        corpoTabelaUsuarios.innerHTML += `<tr><td>${usuario.nome}</td><td>${usuario.email}</td><td>${celularUsuario}</td><td>${usuario.dataCadastro}</td><td>${usuario.pontuacaoMaxima}</td></tr>`;
     });
 }
 
@@ -228,16 +255,13 @@ function atualizarIndicadores() {
     const usuarios = getUsuarios();
     const totalUsuarios = usuarios.length;
     let somaPontuacoes = 0, pontuacaoMaximaGlobal = 0, somaNiveis = 0;
-
     usuarios.forEach(u => {
         somaPontuacoes += u.pontuacaoMaxima;
         if (u.pontuacaoMaxima > pontuacaoMaximaGlobal) pontuacaoMaximaGlobal = u.pontuacaoMaxima;
         somaNiveis += u.nivelMaximo;
     });
-
     const mediaPontuacao = totalUsuarios > 0 ? (somaPontuacoes / totalUsuarios).toFixed(0) : 0;
     const nivelMedio = totalUsuarios > 0 ? (somaNiveis / totalUsuarios).toFixed(1) : 0;
-
     document.getElementById('totalUsuarios').textContent = totalUsuarios;
     document.getElementById('mediaPontuacao').textContent = mediaPontuacao;
     document.getElementById('pontuacaoMaximaGlobal').textContent = pontuacaoMaximaGlobal;
@@ -291,43 +315,29 @@ window.addEventListener('keydown', (evento) => {
 
 function tratarCliqueOuToque(evento) {
     evento.preventDefault(); 
-    
-    if (estadoDoJogo === 'preparado') {
-        reiniciarJogo();
-        return;
-    }
-
+    if (estadoDoJogo === 'preparado') { reiniciarJogo(); return; }
     if (estadoDoJogo !== 'jogando') return;
-
     const rect = canvas.getBoundingClientRect();
     const clientX = evento.touches ? evento.touches[0].clientX : evento.clientX;
     const clientY = evento.touches ? evento.touches[0].clientY : evento.clientY;
     const mouseX = clientX - rect.left;
     const mouseY = clientY - rect.top;
-
     const padding = 15; 
-    // CORRIGIDO: O erro de digitação 'altura' foi trocado por 'alvo.altura'
     if (mouseX >= alvo.x - padding && mouseX <= alvo.x + alvo.largura + padding &&
         mouseY >= alvo.y - padding && mouseY <= alvo.y + alvo.altura + padding) {
-        
         somDoClique.currentTime = 0;
         somDoClique.play().catch(e => console.log("Erro ao tocar som:", e));
-        
         pontuacao += 10;
         tempoRestante += 2; 
-
         alvo.velocidadeY += 0.04; 
         if (alvo.velocidadeY > VELOCIDADE_MAXIMA) alvo.velocidadeY = VELOCIDADE_MAXIMA;
-
         resetarPosicaoAlvo();
-        
         if (nivelAtual < niveis.length && pontuacao >= niveis[nivelAtual].pontuacaoParaPassar) {
             if (pontuacao < PONTUACAO_VITORIA) {
                  estadoDoJogo = 'nivelConcluido';
                  clearInterval(cronometro); 
             }
         }
-
         if (pontuacao >= PONTUACAO_VITORIA) {
             estadoDoJogo = 'vitoria';
             atualizarPontuacaoJogador();
@@ -344,7 +354,6 @@ canvas.addEventListener('touchstart', tratarCliqueOuToque, { passive: false });
 
 function gameLoop() {
     requestAnimationFrame(gameLoop);
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const fundoCor = document.body.classList.contains('dark-mode') ? '#1f2a47' : '#f0f2f5';
     ctx.fillStyle = fundoCor;
@@ -352,7 +361,6 @@ function gameLoop() {
 
     if (estadoDoJogo === 'preparado') {
         fimDeJogoContainer.classList.add('escondido');
-        
         ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#E0E0E0' : '#333';
         ctx.textAlign = 'center';
         ctx.font = 'bold 30px Poppins, sans-serif';
@@ -385,10 +393,8 @@ function gameLoop() {
             tempoRestante -= 2;
             resetarPosicaoAlvo();
         }
-        
         ctx.fillStyle = alvo.cor;
         ctx.fillRect(alvo.x, alvo.y, alvo.largura, alvo.altura);
-        
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.fillRect(0, 0, canvas.width, 50);
         ctx.fillStyle = '#FFFFFF';
@@ -406,7 +412,6 @@ function gameLoop() {
         ctx.textAlign = 'right';
         ctx.fillText(`Nível: ${nivelAtual + 1} | Tempo: ${Math.max(0, tempoRestante)}`, canvas.width - 15, yPosTexto);
         ctx.shadowColor = 'transparent';
-
     } else if (estadoDoJogo === 'vitoria' || estadoDoJogo === 'gameOver') {
         fimDeJogoContainer.classList.remove('escondido');
         if (estadoDoJogo === 'vitoria') {

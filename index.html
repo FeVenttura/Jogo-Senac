@@ -15,17 +15,20 @@
 
     <div id="telaLogin">
         <h1>SENAC Reflexo Rápido</h1>
-        <form id="formLogin">
+        <form id="formLogin" novalidate>
             <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" required placeholder="Digite seu nome aqui...">
-            
-            <label for="telefone">Telefone:</label>
-            <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX">
+            <input type="text" id="nome" placeholder="Digite seu nome aqui...">
             
             <label for="email">E-mail:</label>
             <input type="email" id="email" required placeholder="seuemail@exemplo.com">
+            
+            <label for="celular">Celular:</label>
+            <input type="tel" id="celular" required placeholder="(XX) XXXXX-XXXX">
 
-            <button type="submit">Iniciar</button>
+            <label for="senha">Senha (Apenas ADM):</label>
+            <input type="password" id="senha" placeholder="Apenas para ADM">
+
+            <button type="submit">Entrar</button>
         </form>
     </div>
 
@@ -39,7 +42,7 @@
             <ul>
                 <li><a href="#" data-target="jogar" class="active">Jogar</a></li>
                 <li><a href="#" data-target="dashboard">Dashboard</a></li>
-                <li><a href="#" data-target="usuarios">Usuários</a></li>
+                <li id="menu-item-usuarios"><a href="#" data-target="usuarios">Usuários</a></li>
             </ul>
             <div class="menu-footer">
                 <div class="theme-switch-wrapper">
@@ -57,9 +60,8 @@
             
             <section id="dashboard" class="secao-conteudo escondido">
                 <h1>Dashboard de Estatísticas</h1>
-                
                 <div class="indicadores-container">
-                    <div class="cartao-indicador">
+                     <div class="cartao-indicador">
                         <h3>Total de Usuários</h3>
                         <p id="totalUsuarios" class="numero-indicador">0</p>
                         <p class="descricao-indicador">Usuários cadastrados no sistema</p>
@@ -94,7 +96,6 @@
                 </div>
             </section>
 
-
             <section id="usuarios" class="secao-conteudo escondido">
                 <h1>Gerenciamento de Usuários</h1>
                 
@@ -108,7 +109,7 @@
                             <tr>
                                 <th>Nome Completo</th>
                                 <th>E-mail</th>
-                                <th>Telefone</th>
+                                <th>Celular</th>
                                 <th>Data de Cadastro</th>
                                 <th>Pontuação Máxima</th>
                             </tr>

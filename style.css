@@ -124,11 +124,10 @@ canvas {
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
-/* --- ESTILOS PARA O BOTÃO DE PAUSA (POSIÇÃO CORRIGIDA) --- */
 #botaoPausar {
     position: absolute;
-    top: 60px; /* ALTERADO: Move o botão para baixo, fora da barra de info */
-    right: 15px; /* ALTERADO: Ajusta a distância da direita */
+    top: 60px;
+    right: 15px;
     z-index: 30;
     background-color: rgba(0, 0, 0, 0.4);
     color: white;
@@ -256,32 +255,24 @@ canvas {
     transition: width 0.3s ease, padding 0.3s ease, background-color 0.3s ease;
 }
 
-/* ======================================== */
-/* CSS CORRIGIDO PARA O LOGO NO MENU       */
-/* ======================================== */
-
-/* Ajusta o container do cabeçalho (botão + logo) */
 #menuLateral .menu-header {
     display: flex;
-    align-items: center; /* Alinha o botão e o logo verticalmente */
+    align-items: center;
     margin-bottom: 40px;
     overflow: hidden;
 }
 
-/* Remove estilos de texto do H2 e define a altura do logo */
 #menuLateral .menu-header h2 {
     margin: 0;
     padding: 0;
-    height: 80px; /* <-- ALTURA DO LOGO: Você pode ajustar este valor! */
+    height: 35px;
     width: auto;
-    /* Adicionado para garantir que o alinhamento funcione bem */
     line-height: 0; 
 }
 
-/* Faz a imagem se ajustar perfeitamente dentro do H2 */
 #menuLateral .menu-header h2 img {
-    height: 100%; /* Faz a imagem ocupar toda a altura do H2 */
-    width: auto;   /* A largura se ajusta para manter a proporção */
+    height: 100%;
+    width: auto;
     display: block; 
 }
 
